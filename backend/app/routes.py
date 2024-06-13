@@ -4,6 +4,7 @@ from app.models import Password, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .password_encryption import encrypt_password, decrypt_password 
 from .password_pwned import check_password_pwned
+from datetime import datetime, timezone
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -88,8 +89,10 @@ def update_password(password_id):
     if not password:
         return jsonify({'message': 'Password not found'}), 404
 
+    if encrypt_password(password.password) != data['password']:
+        password.created_at = datetime.now(timezone.utc)
     password.website = data.get('website', password.website)
-    password.password = data.get('password', password.password)
+    password.password = decrypt_password(data.get('password', password.password))
     password.category = data.get('category', password.category)
     password.notes = data.get('notes', password.notes)
     
