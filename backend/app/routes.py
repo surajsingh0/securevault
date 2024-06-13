@@ -2,6 +2,7 @@ from flask import jsonify, request
 from app import app, db, bcrypt
 from app.models import Password, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from .password_encryption import encrypt_password, decrypt_password 
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -32,7 +33,8 @@ def add_password():
     data = request.get_json()
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user['username']).first()
-    new_password = Password(user_id=user.id, website=data['website'], password=data['password'], category=data.get('category'), notes=data.get('notes'))
+    encrypted_password = encrypt_password(data['password'])
+    new_password = Password(user_id=user.id, website=data['website'], password=encrypted_password, category=data.get('category'), notes=data.get('notes'))
     db.session.add(new_password)
     db.session.commit()
 
@@ -42,7 +44,7 @@ def add_password():
             'id': new_password.id,
             'user_id': new_password.user_id,
             'website': new_password.website,
-            'password': new_password.password,
+            'password': decrypt_password(new_password.password),
             'category': new_password.category,
             'notes': new_password.notes
         }
@@ -55,7 +57,7 @@ def get_passwords():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user['username']).first()
     passwords = Password.query.filter_by(user_id=user.id).all()
-    passwords_list = [{'id': p.id, 'website': p.website, 'password': p.password, 'category': p.category, 'notes': p.notes} for p in passwords]
+    passwords_list = [{'id': p.id, 'website': p.website, 'password': decrypt_password(p.password), 'category': p.category, 'notes': p.notes} for p in passwords]
     return jsonify(passwords_list), 200
 
 @app.route('/api/passwords/<int:password_id>', methods=['DELETE'])
