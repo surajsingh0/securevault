@@ -6,6 +6,7 @@ import {
     ListItem,
     Text,
     Button,
+    Input,
     useDisclosure,
     useToast,
 } from "@chakra-ui/react";
@@ -99,6 +100,22 @@ const PasswordList = ({
         onOpen();
     };
 
+    const handleSearchPasswords = (searchTerm) => {
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+        setFilteredPasswords(
+            passwords.filter((password) =>
+                selectedCategories.length === 0
+                    ? password.website
+                          .toLowerCase()
+                          .includes(lowercasedSearchTerm)
+                    : selectedCategories.includes(password.category) &&
+                      password.website
+                          .toLowerCase()
+                          .includes(lowercasedSearchTerm)
+            )
+        );
+    };
+
     const checkPassword = async (password_id) => {
         setLoading(true);
         try {
@@ -152,18 +169,32 @@ const PasswordList = ({
             </HStack>
 
             <Text mb={2}>Selected Categories:</Text>
-            <HStack spacing={2} mb={4} align="center" justify="center" w="full">
-                {selectedCategories.map((category) => (
-                    <Button
-                        key={category}
-                        onClick={() => handleCategoryClick(category)}
-                        colorScheme="blue"
-                    >
-                        {category}
-                    </Button>
-                ))}
-            </HStack>
-
+            {selectedCategories.length === 0 ? (
+                <Text mb={4} color="gray.500" fontStyle={"italic"}>No categories selected</Text>
+            ) : (
+                <HStack
+                    spacing={2}
+                    mb={4}
+                    align="center"
+                    justify="center"
+                    w="full"
+                >
+                    {selectedCategories.map((category) => (
+                        <Button
+                            key={category}
+                            onClick={() => handleCategoryClick(category)}
+                            colorScheme="blue"
+                        >
+                            {category}
+                        </Button>
+                    ))}
+                </HStack>
+            )}
+            <Input
+                placeholder="Search Passwords"
+                mb={4}
+                onChange={(e) => handleSearchPasswords(e.target.value)}
+            />
             <List mt={4} spacing={3}>
                 {filteredPasswords.map((password) => (
                     <ListItem
