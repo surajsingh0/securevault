@@ -11,6 +11,7 @@ import {
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../App";
+import LoadingOverlay from "./LoadingOverlay";
 
 const Login = () => {
     const [username, setUsername] = useState("");
@@ -18,10 +19,14 @@ const Login = () => {
 
     const { setIsLoggedIn } = useContext(AuthContext);
 
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        setLoading(true);
 
         try {
             const response = await axios.post("http://localhost:5000/login", { username, password });
@@ -36,11 +41,14 @@ const Login = () => {
             navigate('/password_manager')
         } catch (error) {
             console.error("Login failed:", error);
+        } finally { 
+            setLoading(false);
         }
     };
 
     return (
         <Flex align="center" justify="center" h="100vh">
+            {loading && <LoadingOverlay isOpen={loading} />}
             <Box
                 maxW="md"
                 w="full"

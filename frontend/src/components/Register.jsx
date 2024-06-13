@@ -10,15 +10,20 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import axios from "axios";
+import LoadingOverlay from "./LoadingOverlay";
 
 const Register = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        setLoading(true);
 
         try {
             const response = await axios.post("http://localhost:5000/register", { username, password });
@@ -29,11 +34,14 @@ const Register = () => {
 
         } catch (error) {
             console.error("Registration failed:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <Flex align="center" justify="center" h="100vh">
+            {loading && <LoadingOverlay isOpen={loading} />}
             <Box
                 maxW="md"
                 w="full"

@@ -9,6 +9,7 @@ import axios from "axios";
 import PasswordModal from "./PasswordModal";
 import PasswordList from "./PasswordList";
 import PasswordAdd from "./PasswordAdd";
+import LoadingOverlay from "./LoadingOverlay";
 
 const PasswordManager = () => {
     const [passwords, setPasswords] = useState([]);
@@ -16,7 +17,10 @@ const PasswordManager = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedPassword, setSelectedPassword] = useState(null);
 
+    const [loading, setLoading] = useState(false);
+
     const handleAddPassword = async (website, password, category, notes) => {
+        setLoading(true);
         try {
             const response = await axios.post(
                 "http://localhost:5000/api/passwords",
@@ -39,10 +43,13 @@ const PasswordManager = () => {
             setPasswords([...passwords, response.data.password]);
         } catch (error) {
             console.error("Failed to add password:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchPasswords = async () => {
+        setLoading(true);
         try {
             const response = await axios.get(
                 "http://localhost:5000/api/passwords",
@@ -57,10 +64,13 @@ const PasswordManager = () => {
             setPasswords(response.data);
         } catch (error) {
             console.error("Failed to fetch passwords:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleDeletePassword = async (id) => {
+        setLoading(true);
         try {
             await axios.delete(`http://localhost:5000/api/passwords/${id}`, {
                 headers: {
@@ -71,6 +81,8 @@ const PasswordManager = () => {
             setPasswords(passwords.filter((password) => password.id !== id));
         } catch (error) {
             console.error("Failed to delete password:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -80,6 +92,7 @@ const PasswordManager = () => {
     };
 
     const handleUpdatePassword = async () => {
+        setLoading(true);
         try {
             await axios.put(
                 `http://localhost:5000/api/passwords/${selectedPassword.id}`,
@@ -105,6 +118,8 @@ const PasswordManager = () => {
             onClose();
         } catch (error) {
             console.error("Failed to update password:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -118,6 +133,7 @@ const PasswordManager = () => {
 
     return (
         <Flex align="center" justify="center">
+            {loading && <LoadingOverlay isOpen={loading} />}
             <Box
                 maxW="md"
                 w="full"

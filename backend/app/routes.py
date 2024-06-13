@@ -3,6 +3,7 @@ from app import app, db, bcrypt
 from app.models import Password, User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from .password_encryption import encrypt_password, decrypt_password 
+from .password_pwned import check_password_pwned
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -105,3 +106,22 @@ def update_password(password_id):
         }
     }
     return jsonify(response_data), 200
+
+@app.route('/check_password', methods=['POST'])
+@jwt_required()
+def check_password():
+    data = request.get_json()
+    current_user = get_jwt_identity()
+    password_id = data['password_id']
+
+    user = User.query.filter_by(username=current_user['username']).first()
+    password = Password.query.filter_by(id=password_id, user_id=user.id).first()
+
+    if not password:
+        return jsonify({"error": "Password is required"}), 400
+        
+    count = check_password_pwned(decrypt_password(password.password))
+    if count:
+        return jsonify({"message": f"Password has been pwned {count} times!", "compromised": True}), 200
+    else:
+        return jsonify({"message": "Password has not been pwned.", "compromised": False}), 200

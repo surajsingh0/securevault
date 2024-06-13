@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Box, HStack, List, ListItem, Text, Button, useDisclosure } from "@chakra-ui/react";
+import {
+    Box,
+    HStack,
+    List,
+    ListItem,
+    Text,
+    Button,
+    useDisclosure,
+    useToast,
+} from "@chakra-ui/react";
 import PasswordStrength from "./PasswordStrength";
 import ReusedPasswordModal from "./ReusedPasswordModal";
+import axios from "axios";
+import LoadingOverlay from "./LoadingOverlay";
 
 const PasswordList = ({
     passwords,
@@ -24,6 +35,9 @@ const PasswordList = ({
     const [currentReusedPasswords, setCurrentReusedPasswords] = useState([]);
 
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const toast = useToast();
+
+    const [loading, setLoading] = useState(false);
 
     const checkReusedPasswords = () => {
         const passwordMap = {};
@@ -85,8 +99,35 @@ const PasswordList = ({
         onOpen();
     };
 
+    const checkPassword = async (password_id) => {
+        setLoading(true);
+        try {
+            const response = await axios.post(
+                "http://localhost:5000/check_password",
+                { password_id },
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + localStorage.getItem("token"),
+                    },
+                }
+            );
+            toast({
+                title: response.data.message,
+                status: response.data.compromised ? "error" : "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("There was an error checking the password!", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Box>
+            {loading && <LoadingOverlay isOpen={loading} />}
             <HStack
                 spacing={4}
                 mb={4}
@@ -147,27 +188,40 @@ const PasswordList = ({
                     >
                         <HStack>
                             <Text>{password.website} </Text>
-                            {isReusedPasswords[password.password][0] > 1 ? (
+                            <Box ml="auto">
                                 <Button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleReusedPasswords(
-                                            password,
-                                            isReusedPasswords[
-                                                password.password
-                                            ][1]
-                                        );
+                                        checkPassword(password.id);
                                     }}
                                     variant="outline"
-                                    ml="auto"
                                     size="sm"
                                     colorScheme="blue"
                                 >
-                                    Reused
+                                    Pwned Password?
                                 </Button>
-                            ) : (
-                                ""
-                            )}
+                                {isReusedPasswords[password.password][0] > 1 ? (
+                                    <Button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleReusedPasswords(
+                                                password,
+                                                isReusedPasswords[
+                                                    password.password
+                                                ][1]
+                                            );
+                                        }}
+                                        variant="outline"
+                                        size="sm"
+                                        colorScheme="blue"
+                                        ml={2}
+                                    >
+                                        Reused
+                                    </Button>
+                                ) : (
+                                    ""
+                                )}
+                            </Box>
                         </HStack>
                         <Text mt={2}>
                             <PasswordStrength password={password.password} />
@@ -192,11 +246,10 @@ const PasswordList = ({
                     isOpen={isOpen}
                     onClose={onClose}
                     reusedPasswords={currentReusedPasswords}
-
                     setSelectedPassword={setSelectedPassword}
                     isPasswordOpen={isPasswordOpen}
                     onPasswordOpen={onPasswordOpen}
-                    onPasswordClose={onPasswordClose}                    
+                    onPasswordClose={onPasswordClose}
                     handleUpdatePassword={handleUpdatePassword}
                 />
             )}
