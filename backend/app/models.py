@@ -1,5 +1,6 @@
 from app import db, login_manager
 from flask_login import UserMixin
+from datetime import datetime, timezone
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -17,6 +18,7 @@ class Password(db.Model):
     password = db.Column(db.String(255), nullable=False)
     category = db.Column(db.String(255))
     notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     def __repr__(self):
-        return f"Password(website='{self.website}', password='{self.password}', category='{self.category}', notes='{self.notes}')"
+        return f"Password(website='{self.website}', password='{self.password}', category='{self.category}', notes='{self.notes}, created_at='{self.created_at}')"

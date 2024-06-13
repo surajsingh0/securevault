@@ -116,6 +116,12 @@ const PasswordList = ({
         );
     };
 
+    // To be implemented (if needed)
+
+    // useEffect(() => {
+    //     handleSearchPasswords(searchTerm);
+    // }, [searchTerm, selectedCategories, passwords]);
+
     const checkPassword = async (password_id) => {
         setLoading(true);
         try {

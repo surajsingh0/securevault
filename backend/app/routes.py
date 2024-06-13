@@ -47,7 +47,8 @@ def add_password():
             'website': new_password.website,
             'password': decrypt_password(new_password.password),
             'category': new_password.category,
-            'notes': new_password.notes
+            'notes': new_password.notes,
+            'created_at': new_password.created_at
         }
     }
     return jsonify(response_data), 201
@@ -58,7 +59,7 @@ def get_passwords():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user['username']).first()
     passwords = Password.query.filter_by(user_id=user.id).all()
-    passwords_list = [{'id': p.id, 'website': p.website, 'password': decrypt_password(p.password), 'category': p.category, 'notes': p.notes} for p in passwords]
+    passwords_list = [{'id': p.id, 'website': p.website, 'password': decrypt_password(p.password), 'category': p.category, 'notes': p.notes, 'created_at': p.created_at} for p in passwords]
     return jsonify(passwords_list), 200
 
 @app.route('/api/passwords/<int:password_id>', methods=['DELETE'])
@@ -102,7 +103,8 @@ def update_password(password_id):
             'website': password.website,
             'password': password.password,
             'category': password.category,
-            'notes': password.notes
+            'notes': password.notes,
+            'created_at': password.created_at
         }
     }
     return jsonify(response_data), 200

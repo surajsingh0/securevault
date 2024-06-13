@@ -62,6 +62,7 @@ const PasswordManager = () => {
             );
 
             setPasswords(response.data);
+            console.log(response.data)
         } catch (error) {
             console.error("Failed to fetch passwords:", error);
         } finally {
@@ -127,9 +128,6 @@ const PasswordManager = () => {
         fetchPasswords();
     }, []);
 
-    useEffect(() => {
-        fetchPasswords();
-    }, []);
 
     return (
         <Flex align="center" justify="center">

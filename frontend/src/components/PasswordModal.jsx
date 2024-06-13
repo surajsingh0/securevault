@@ -11,6 +11,7 @@ import {
     Button,
     HStack,
     Box,
+    Text,
 } from "@chakra-ui/react";
 import PasswordStrength from "./PasswordStrength";
 
@@ -67,6 +68,15 @@ const PasswordModal = ({
                         <PasswordStrength
                             password={selectedPassword.password}
                         />
+                        <Text color="red.500" fontSize="sm" fontWeight="bold">
+                            {Math.floor(
+                                (new Date() -
+                                    new Date(selectedPassword.created_at)) /
+                                    (1000 * 60 * 60 * 24)
+                            ) >= 30
+                                ? "Please consider changing your password its been more than 30 days"
+                                : ""}
+                        </Text>
                     </Box>
 
                     <Input
@@ -91,6 +101,16 @@ const PasswordModal = ({
                         mb={4}
                         placeholder="Notes"
                     />
+                    <Text>
+                        {new Date(
+                            selectedPassword.created_at
+                        ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "numeric",
+                            year: "numeric",
+                            timeZone: "Asia/Kolkata",
+                        })}
+                    </Text>
                 </ModalBody>
 
                 <ModalFooter>
