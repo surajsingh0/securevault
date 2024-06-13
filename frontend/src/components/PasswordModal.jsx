@@ -68,6 +68,16 @@ const PasswordModal = ({
                         <PasswordStrength
                             password={selectedPassword.password}
                         />
+                        <Text fontSize="sm" color="gray.500">
+                        {new Date(
+                            selectedPassword.created_at
+                        ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "numeric",
+                            year: "numeric",
+                            timeZone: "Asia/Kolkata",
+                        })}
+                        </Text>
                         <Text color="red.500" fontSize="sm" fontWeight="bold">
                             {Math.floor(
                                 (new Date() -
@@ -101,16 +111,6 @@ const PasswordModal = ({
                         mb={4}
                         placeholder="Notes"
                     />
-                    <Text>
-                        {new Date(
-                            selectedPassword.created_at
-                        ).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "numeric",
-                            year: "numeric",
-                            timeZone: "Asia/Kolkata",
-                        })}
-                    </Text>
                 </ModalBody>
 
                 <ModalFooter>
