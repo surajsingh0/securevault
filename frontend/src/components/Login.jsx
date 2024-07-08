@@ -29,7 +29,10 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post("http://localhost:5000/login", { username, password });
+            const response = await axios.post("http://localhost:5000/login", {
+                username,
+                password,
+            });
             const accessToken = response.data.access_token;
 
             localStorage.setItem("token", accessToken);
@@ -38,10 +41,10 @@ const Login = () => {
 
             setIsLoggedIn(true);
 
-            navigate('/password_manager')
+            navigate("/password-manager");
         } catch (error) {
             console.error("Login failed:", error);
-        } finally { 
+        } finally {
             setLoading(false);
         }
     };
