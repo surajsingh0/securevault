@@ -34,8 +34,10 @@ const Login = () => {
                 password,
             });
             const accessToken = response.data.access_token;
+            const refreshToken = response.data.refresh_token;
 
             localStorage.setItem("token", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
 
             console.log("Login successful:", accessToken);
 

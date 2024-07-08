@@ -5,7 +5,7 @@ import {
     Heading,
     useDisclosure,
 } from"@chakra-ui/react";
-import axios from "axios";
+import axiosInstance from '../axiosConfig';
 import PasswordModal from "./PasswordModal";
 import PasswordList from "./PasswordList";
 import PasswordAdd from "./PasswordAdd";
@@ -22,7 +22,7 @@ const PasswordManager = () => {
     const handleAddPassword = async (website, password, category, notes) => {
         setLoading(true);
         try {
-            const response = await axios.post(
+            const response = await axiosInstance.post(
                 "http://localhost:5000/api/passwords",
                 {
                     website: website,
@@ -30,12 +30,6 @@ const PasswordManager = () => {
                     category: category,
                     notes: notes,
                 },
-                {
-                    headers: {
-                        Authorization:
-                            "Bearer " + localStorage.getItem("token"),
-                    },
-                }
             );
 
             console.log(response);
@@ -51,14 +45,9 @@ const PasswordManager = () => {
     const fetchPasswords = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(
-                "http://localhost:5000/api/passwords",
-                {
-                    headers: {
-                        Authorization:
-                            "Bearer " + localStorage.getItem("token"),
-                    },
-                }
+            const response = await axiosInstance.get(
+                "http://localhost:5000/api/passwords"
+
             );
 
             setPasswords(response.data);
@@ -73,11 +62,7 @@ const PasswordManager = () => {
     const handleDeletePassword = async (id) => {
         setLoading(true);
         try {
-            await axios.delete(`http://localhost:5000/api/passwords/${id}`, {
-                headers: {
-                    Authorization: "Bearer " + localStorage.getItem("token"),
-                },
-            });
+            await axiosInstance.delete(`http://localhost:5000/api/passwords/${id}`);
 
             setPasswords(passwords.filter((password) => password.id !== id));
         } catch (error) {
@@ -95,19 +80,13 @@ const PasswordManager = () => {
     const handleUpdatePassword = async () => {
         setLoading(true);
         try {
-            await axios.put(
+            await axiosInstance.put(
                 `http://localhost:5000/api/passwords/${selectedPassword.id}`,
                 {
                     website: selectedPassword.website,
                     password: selectedPassword.password,
                     category: selectedPassword.category,
                     notes: selectedPassword.notes,
-                },
-                {
-                    headers: {
-                        Authorization:
-                            "Bearer " + localStorage.getItem("token"),
-                    },
                 }
             );
 

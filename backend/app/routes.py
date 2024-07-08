@@ -1,10 +1,10 @@
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from app import app, db, bcrypt
 from app.models import Password, User
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from .password_encryption import encrypt_password, decrypt_password 
 from .password_pwned import check_password_pwned
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -25,9 +25,20 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     if user and bcrypt.check_password_hash(user.password, data['password']):
         access_token = create_access_token(identity={'username': user.username})
-        return jsonify({'access_token': access_token}), 200
+        refresh_token = create_refresh_token(identity={'username': user.username})
+        return jsonify({
+            'access_token': access_token,
+            'refresh_token': refresh_token
+            }), 200
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
+    
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user)
+    return jsonify({'access_token': new_access_token}), 200
 
 @app.route('/api/passwords', methods=['POST'])
 @jwt_required()
@@ -130,3 +141,21 @@ def check_password():
         return jsonify({"message": f"Password has been pwned {count} times!", "compromised": True}), 200
     else:
         return jsonify({"message": "Password has not been pwned.", "compromised": False}), 200
+    
+# function to handle token expiration
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            data = response.get_json()
+            if type(data) is dict:
+                data["access_token"] = access_token 
+                response = make_response(jsonify(data))
+        return response
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original response
+        return response
